@@ -1,0 +1,16 @@
+{
+  "name": "VIPER Connection Stabilizer",
+  "short_name": "VIPER",
+  "start_url": "index.html",
+  "display": "standalone",
+  "background_color": "#0a0a0a",
+  "theme_color": "#0a0a0a",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "https://img.icons8.com/ios-filled/512/ffffff/shield.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

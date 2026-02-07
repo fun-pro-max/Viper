@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#0a0a0a">
+    <title>VIPER - Connection Stabilization</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="manifest" href="manifest.json">
+</head>
+<body>
+    <div class="app-container">
+        <header>
+            <h1>VIPER</h1>
+            <p class="subtitle">Connection Stabilization Tool</p>
+        </header>
+
+        <main>
+            <section class="description">
+                <p>Stabilize internet connectivity in congested or unfamiliar areas by optimizing routing paths and DNS resolution efficiency.</p>
+            </section>
+
+            <section class="action-zone">
+                <button id="stabilizeBtn" class="primary-btn">STABILIZE CONNECTION</button>
+            </section>
+
+            <section class="status-panel">
+                <div class="status-item">
+                    <span class="label">Status:</span>
+                    <span id="statusText" class="value">Idle</span>
+                </div>
+                <hr>
+                <div class="metrics">
+                    <div class="metric-box">
+                        <span class="label">Initial Latency</span>
+                        <span id="latencyBefore" class="value">--</span>
+                    </div>
+                    <div class="metric-box">
+                        <span class="label">Stable Latency</span>
+                        <span id="latencyAfter" class="value">--</span>
+                    </div>
+                </div>
+                <div id="optimizationDetail" class="detail-text"></div>
+            </section>
+        </main>
+    </div>
+
+    <script type="module" src="app.js"></script>
+    <script>
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('./sw.js');
+        }
+    </script>
+</body>
+</html>
