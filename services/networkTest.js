@@ -1,13 +1,19 @@
-export async function measureLatency() {
-    const start = performance.now();
-    const ctrl = new AbortController();
-    const tid = setTimeout(() => ctrl.abort(), 5000);
+export async function measureJioPulse(targetUrl) {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 4000);
+    const buster = `${targetUrl}${targetUrl.includes('?') ? '&' : '?'}cache=${Date.now()}`;
 
     try {
-        await fetch('https://www.google.com/generate_204', { 
-            mode: 'no-cors', cache: 'no-cache', signal: ctrl.signal 
+        const start = performance.now();
+        const res = await fetch(buster, { 
+            mode: 'no-cors', 
+            cache: 'no-store', 
+            signal: controller.signal,
+            priority: 'high'
         });
-        clearTimeout(tid);
+        clearTimeout(timeout);
         return performance.now() - start;
-    } catch (e) { return 999; }
+    } catch (e) {
+        return 999;
+    }
 }

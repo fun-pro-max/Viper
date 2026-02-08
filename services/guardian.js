@@ -1,10 +1,10 @@
-import { measureLatency } from './networkTest.js';
-import { optimizeConnection } from './optimizer.js';
+import { measureJioPulse } from './networkTest.js';
+import { getJioNodes } from './dnsManager.js';
 import { sleep } from '../utils/helpers.js';
 
 let isActive = false;
 let wakeLock = null;
-let lastKnownLatency = null;
+let currentLat = 0;
 
 export async function toggleGuardian(enabled, onUpdate) {
     isActive = enabled;
@@ -12,7 +12,7 @@ export async function toggleGuardian(enabled, onUpdate) {
     const canvas = document.getElementById('pipCanvas');
 
     if (isActive) {
-        startOrbAnimation(canvas);
+        startOrb(canvas);
         try {
             const stream = canvas.captureStream(30);
             video.srcObject = stream;
@@ -23,7 +23,7 @@ export async function toggleGuardian(enabled, onUpdate) {
         if ('wakeLock' in navigator) {
             try { wakeLock = await navigator.wakeLock.request('screen'); } catch (e) {}
         }
-        runLoop(onUpdate);
+        runDeepGuard(onUpdate);
     } else {
         isActive = false;
         if (document.pictureInPictureElement) document.exitPictureInPicture().catch(()=>{});
@@ -31,45 +31,58 @@ export async function toggleGuardian(enabled, onUpdate) {
     }
 }
 
-function startOrbAnimation(canvas) {
+async function runDeepGuard(onUpdate) {
+    const nodes = getJioNodes();
+    
+    while (isActive) {
+        // Parallel Telemetry: Check all nodes at once
+        const results = await Promise.all(nodes.map(async (n) => {
+            const lat = await measureJioPulse(n.url);
+            return { ...n, lat };
+        }));
+
+        // Filter out any 999s and find the fastest "Anchor"
+        const activeResults = results.filter(r => r.lat < 999);
+        const best = activeResults.sort((a, b) => a.lat - b.lat)[0] || { lat: 999, name: 'Searching...' };
+        
+        currentLat = best.lat;
+
+        onUpdate({ 
+            type: 'CYCLE', 
+            latency: best.lat, 
+            status: best.lat > 100 ? 'Deep Bursting' : 'Anchor Locked',
+            provider: best.name 
+        });
+
+        // SMART STABILIZATION:
+        // We pulse the Anchor to stay fast, and pulse the slow nodes to "wake them up"
+        const burstIntensity = best.lat > 90 ? 12 : 6;
+        
+        results.forEach(node => {
+            const intensity = node.lat > 120 ? burstIntensity + 4 : burstIntensity;
+            for (let i = 0; i < intensity; i++) {
+                fetch(node.url, { mode: 'no-cors', cache: 'no-store', priority: 'high' }).catch(()=>{});
+            }
+        });
+
+        // If even the best route is > 100ms, pulse every 800ms to fight for priority
+        await sleep(best.lat > 100 ? 800 : 2000);
+    }
+}
+
+function startOrb(canvas) {
     const ctx = canvas.getContext('2d');
-    let r = 50; let grow = true;
+    let r = 20; let grow = true;
     function draw() {
         if (!isActive) return;
-        ctx.fillStyle = "black"; ctx.fillRect(0,0,200,200);
-        const g = ctx.createRadialGradient(100,100,10,100,100,r);
-        g.addColorStop(0, "#4cd964"); g.addColorStop(1, "transparent");
-        ctx.beginPath(); ctx.arc(100,100,r,0,Math.PI*2); ctx.fillStyle=g; ctx.fill();
-        
-        // Faster animation during high latency
-        const speed = (lastKnownLatency > 150) ? 3 : 1;
-        if (grow) r += speed; else r -= speed;
-        if (r > 85 || r < 35) grow = !grow;
+        ctx.fillStyle = "#000000"; ctx.fillRect(0,0,120,120);
+        const g = ctx.createRadialGradient(60,60,2,60,60,r);
+        let color = currentLat > 130 ? "#ff3b30" : (currentLat > 85 ? "#ffcc00" : "#4cd964");
+        g.addColorStop(0, color); g.addColorStop(1, "transparent");
+        ctx.beginPath(); ctx.arc(60,60,r,0,Math.PI*2); ctx.fillStyle = g; ctx.fill();
+        if (grow) r += 2; else r -= 2;
+        if (r > 50 || r < 10) grow = !grow;
         requestAnimationFrame(draw);
     }
     draw();
-}
-
-async function runLoop(onUpdate) {
-    while (isActive) {
-        const opt = await optimizeConnection(lastKnownLatency);
-        const lat = await measureLatency();
-        lastKnownLatency = lat;
-
-        onUpdate({ type: 'CYCLE', latency: lat, provider: opt.provider });
-
-        // REACTIVE TIMING:
-        // If YouTube is causing spikes (>150ms), pulse every 3 seconds to "fight" for priority
-        // Otherwise, maintain every 15 seconds
-        let waitTime = 15000;
-        if (lat > 150) {
-            onUpdate({ type: 'STATUS', msg: 'High Load: Bursting...' });
-            waitTime = 3000; 
-        } else {
-            onUpdate({ type: 'STATUS', msg: 'Path Stable' });
-            waitTime = 15000;
-        }
-
-        await sleep(waitTime); 
-    }
 }

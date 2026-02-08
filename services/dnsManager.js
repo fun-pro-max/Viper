@@ -1,19 +1,20 @@
-let bestProvider = null;
-let bestLatency = 999;
-
-export function getOptimalDNS(lastLatency = null) {
-    const providers = [
-        { name: "Cloudflare", ip: "1.1.1.1" },
-        { name: "Google", ip: "8.8.8.8" }
-    ];
-
-    // If we have a provider that gave us a "Good" result (below 100ms), stick to it!
-    if (lastLatency && lastLatency < 100) {
-        return bestProvider || providers[0];
+export const JIO_STRIKE_NODES = [
+    { 
+        url: 'https://www.google.com/generate_204', 
+        name: 'Jio-Google Anchor', 
+        id: 'jio_g',
+        isAnchor: true 
+    },
+    { 
+        url: 'https://1.1.1.1/cdn-cgi/trace', 
+        name: 'Jio-CF Peering', 
+        id: 'jio_cf'
+    },
+    { 
+        url: 'https://www.jio.com/favicon.ico', 
+        name: 'Jio Odisha Core', 
+        id: 'jio_local'
     }
+];
 
-    // If we don't have a best yet, pick at random to test
-    const selected = providers[Math.floor(Math.random() * providers.length)];
-    bestProvider = selected;
-    return selected;
-}
+export function getJioNodes() { return JIO_STRIKE_NODES; }

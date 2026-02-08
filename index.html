@@ -4,52 +4,42 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="theme-color" content="#0a0a0a">
-    <title>VIPER | Connection Guard</title>
-    <link rel="apple-touch-icon" href="icon.jpg">
+    <title>VIPER | Jio Strike V10</title>
     <link rel="stylesheet" href="style.css">
     <link rel="manifest" href="manifest.json">
 </head>
 <body>
     <div class="app-container">
-        <!-- Technical elements for Floating Mode (Hidden but visible to browser) -->
-        <canvas id="pipCanvas" width="200" height="200" style="position:fixed; opacity:0; pointer-events:none; left:-999px;"></canvas>
+        <canvas id="pipCanvas" width="120" height="120" style="position:fixed; opacity:0; pointer-events:none; left:-999px;"></canvas>
         <video id="pipVideo" autoplay muted playsinline style="position:fixed; width:1px; height:1px; opacity:0; pointer-events:none;"></video>
 
         <header>
             <h1>VIPER</h1>
-            <p class="subtitle">Connection Stabilization Tool</p>
+            <p class="subtitle">Jio Elite Stabilizer</p>
         </header>
 
         <main>
-            <section class="description">
-                <p>Optimizing routing paths. On Android, a floating window will appear to keep stabilization active in the background.</p>
-            </section>
-
             <section class="action-zone">
-                <button id="stabilizeBtn" class="primary-btn">START STABILIZATION</button>
+                <div class="jio-badge">TARGET: BBSR-JIO-CORE-OPTIMIZED</div>
+                <button id="stabilizeBtn" class="primary-btn">ENGAGE JIO-STRIKE</button>
             </section>
 
             <section class="status-panel">
-                <div class="status-header">
-                    <span class="label">Guard State:</span>
-                    <span id="statusText" class="value">Idle</span>
-                </div>
                 <div class="metrics">
                     <div class="metric-box">
-                        <span class="label">Latency</span>
+                        <span class="label">Jio Latency</span>
                         <span id="latencyDisplay" class="value">--</span>
+                    </div>
+                    <div class="metric-box">
+                        <span class="label">Stability</span>
+                        <span id="jitterDisplay" class="value">--</span>
                     </div>
                 </div>
                 <div id="activityLog" class="log-window"></div>
             </section>
         </main>
     </div>
-
     <script type="module" src="app.js"></script>
-    <script>
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('./sw.js');
-        }
-    </script>
+    <script>if ('serviceWorker' in navigator) { navigator.serviceWorker.register('./sw.js?v=10'); }</script>
 </body>
 </html>

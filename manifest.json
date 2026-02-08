@@ -1,12 +1,9 @@
 {
-  "name": "VIPER Guard",
+  "name": "VIPER Jio Strike",
   "short_name": "VIPER",
   "start_url": "index.html",
   "display": "standalone",
   "background_color": "#0a0a0a",
   "theme_color": "#0a0a0a",
-  "icons": [
-    { "src": "icon.jpg", "sizes": "192x192", "type": "image/jpeg" },
-    { "src": "icon.jpg", "sizes": "512x512", "type": "image/jpeg" }
-  ]
+  "icons": [{ "src": "icon.jpg", "sizes": "512x512", "type": "image/jpeg" }]
 }
