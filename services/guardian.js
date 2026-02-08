@@ -1,7 +1,6 @@
 import { measureLatency } from './networkTest.js';
 import { optimizeConnection } from './optimizer.js';
 import { sleep } from '../utils/helpers.js';
-import { getOptimalDNS } from './dnsManager.js';
 
 let isActive = false;
 let wakeLock = null;
@@ -19,7 +18,7 @@ export async function toggleGuardian(enabled, onUpdate) {
             video.srcObject = stream;
             await video.play();
             if (document.pictureInPictureEnabled) await video.requestPictureInPicture();
-        } catch (e) { console.log("Background Mode active via WakeLock"); }
+        } catch (e) {}
 
         if ('wakeLock' in navigator) {
             try { wakeLock = await navigator.wakeLock.request('screen'); } catch (e) {}
@@ -41,7 +40,10 @@ function startOrbAnimation(canvas) {
         const g = ctx.createRadialGradient(100,100,10,100,100,r);
         g.addColorStop(0, "#4cd964"); g.addColorStop(1, "transparent");
         ctx.beginPath(); ctx.arc(100,100,r,0,Math.PI*2); ctx.fillStyle=g; ctx.fill();
-        if (grow) r += 1.5; else r -= 1.5;
+        
+        // Faster animation during high latency
+        const speed = (lastKnownLatency > 150) ? 3 : 1;
+        if (grow) r += speed; else r -= speed;
         if (r > 85 || r < 35) grow = !grow;
         requestAnimationFrame(draw);
     }
@@ -50,25 +52,22 @@ function startOrbAnimation(canvas) {
 
 async function runLoop(onUpdate) {
     while (isActive) {
-        onUpdate({ type: 'STATUS', msg: 'Analyzing Path...' });
-        
-        // Pass the last latency to see if we should stick to the same path
         const opt = await optimizeConnection(lastKnownLatency);
         const lat = await measureLatency();
         lastKnownLatency = lat;
 
         onUpdate({ type: 'CYCLE', latency: lat, provider: opt.provider });
 
-        // ADAPTIVE LOGIC:
-        // If latency is bad (> 200ms), wait only 5 seconds before trying again (Burst Mode)
-        // If latency is good (< 100ms), wait 20 seconds (Maintenance Mode)
+        // REACTIVE TIMING:
+        // If YouTube is causing spikes (>150ms), pulse every 3 seconds to "fight" for priority
+        // Otherwise, maintain every 15 seconds
         let waitTime = 15000;
-        if (lat > 200) {
-            onUpdate({ type: 'STATUS', msg: 'Congestion Detected: Bursting...' });
-            waitTime = 5000; 
+        if (lat > 150) {
+            onUpdate({ type: 'STATUS', msg: 'High Load: Bursting...' });
+            waitTime = 3000; 
         } else {
-            onUpdate({ type: 'STATUS', msg: 'Active Guard' });
-            waitTime = 20000;
+            onUpdate({ type: 'STATUS', msg: 'Path Stable' });
+            waitTime = 15000;
         }
 
         await sleep(waitTime); 
