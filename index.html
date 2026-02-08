@@ -2,9 +2,9 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="theme-color" content="#0a0a0a">
-    <title>VIPER - Connection Stabilization</title>
+    <title>VIPER | Active Guard</title>
     <link rel="stylesheet" href="style.css">
     <link rel="manifest" href="manifest.json">
 </head>
@@ -15,34 +15,44 @@
             <p class="subtitle">Connection Stabilization Tool</p>
         </header>
 
+        <!-- Hidden elements for the Floating Orb -->
+        <canvas id="pipCanvas" width="200" height="200" style="display:none"></canvas>
+        <video id="pipVideo" autoplay muted playsinline style="display:none"></video>
+
         <main>
             <section class="description">
-                <p>Stabilize internet connectivity in congested or unfamiliar areas by optimizing routing paths and DNS resolution efficiency.</p>
+                <p>Maintain active handshakes and routing priority. Use the floating mode to keep protection active in the background.</p>
             </section>
 
             <section class="action-zone">
-                <button id="stabilizeBtn" class="primary-btn">STABILIZE CONNECTION</button>
+                <button id="stabilizeBtn" class="primary-btn">START STABILIZATION</button>
             </section>
 
             <section class="status-panel">
-                <div class="status-item">
-                    <span class="label">Status:</span>
+                <div class="status-header">
+                    <span class="label">Guard State:</span>
                     <span id="statusText" class="value">Idle</span>
                 </div>
-                <hr>
+                
                 <div class="metrics">
                     <div class="metric-box">
-                        <span class="label">Initial Latency</span>
-                        <span id="latencyBefore" class="value">--</span>
-                    </div>
-                    <div class="metric-box">
-                        <span class="label">Stable Latency</span>
-                        <span id="latencyAfter" class="value">--</span>
+                        <span class="label">Current Latency</span>
+                        <span id="latencyDisplay" class="value">--</span>
                     </div>
                 </div>
-                <div id="optimizationDetail" class="detail-text"></div>
+
+                <div class="log-container">
+                    <div class="label">Live Activity Log</div>
+                    <div id="activityLog" class="log-window">
+                        <div class="log-entry">Waiting for user...</div>
+                    </div>
+                </div>
             </section>
         </main>
+
+        <footer class="disclaimer">
+            *Floating Orb mode keeps the stabilization process alive while using other apps.
+        </footer>
     </div>
 
     <script type="module" src="app.js"></script>

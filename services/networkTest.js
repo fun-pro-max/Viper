@@ -1,25 +1,23 @@
+import { CONFIG } from '../utils/constants.js';
+
 export async function measureLatency() {
-    const endpoints = [
-        'https://www.google.com/generate_204',
-        'https://1.1.1.1/cdn-cgi/trace',
-        'https://www.cloudflare.com/cdn-cgi/trace'
-    ];
+    const target = 'https://www.google.com/generate_204';
+    const start = performance.now();
 
-    let totalLatency = 0;
-    let successfulChecks = 0;
+    try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), CONFIG.PING_TIMEOUT);
 
-    for (const url of endpoints) {
-        const start = performance.now();
-        try {
-            // Using no-cors to bypass CORS issues for simple latency check
-            await fetch(url, { mode: 'no-cors', cache: 'no-cache' });
-            const end = performance.now();
-            totalLatency += (end - start);
-            successfulChecks++;
-        } catch (e) {
-            console.warn(`Ping failed for ${url}`);
-        }
+        await fetch(target, { 
+            mode: 'no-cors', 
+            cache: 'no-cache',
+            signal: controller.signal 
+        });
+        
+        clearTimeout(timeoutId);
+        return performance.now() - start;
+    } catch (e) {
+        console.error("Latency check timed out");
+        return 999; 
     }
-
-    return successfulChecks > 0 ? totalLatency / successfulChecks : 0;
 }

@@ -1,19 +1,18 @@
 import { getOptimalDNS } from './dnsManager.js';
-import { sleep } from '../utils/helpers.js';
 
 export async function optimizeConnection() {
-    // 1. Logic to determine best path
-    const bestDNS = getOptimalDNS();
+    const dns = getOptimalDNS();
 
-    // 2. Simulate Route Reset / Socket Warming
-    // This represents the time taken to re-establish handshakes
-    // with a more stable gateway or DNS resolver.
-    await sleep(2000); 
+    // SOCKET WARMING: 
+    // Keeps the cellular radio in a high-power, low-latency state
+    const endpoints = [
+        'https://1.1.1.1/cdn-cgi/trace',
+        'https://8.8.8.8'
+    ];
 
-    // 3. Return results
-    return {
-        success: true,
-        provider: bestDNS.name,
-        timestamp: Date.now()
-    };
+    await Promise.allSettled(
+        endpoints.map(url => fetch(url, { mode: 'no-cors', cache: 'no-cache' }))
+    );
+
+    return { success: true, provider: dns.name };
 }

@@ -1,42 +1,46 @@
-import { measureLatency } from './services/networkTest.js';
-import { optimizeConnection } from './services/optimizer.js';
+import { toggleGuardian } from './services/guardian.js';
+import { formatMs } from './utils/helpers.js';
 import { STATUS } from './utils/constants.js';
-import { updateElementText, formatMs } from './utils/helpers.js';
 
-const stabilizeBtn = document.getElementById('stabilizeBtn');
+const btn = document.getElementById('stabilizeBtn');
 const statusText = document.getElementById('statusText');
-const latencyBefore = document.getElementById('latencyBefore');
-const latencyAfter = document.getElementById('latencyAfter');
-const optimizationDetail = document.getElementById('optimizationDetail');
+const latencyDisplay = document.getElementById('latencyDisplay');
+const healthDisplay = document.getElementById('healthDisplay');
+const logWindow = document.getElementById('activityLog');
 
-stabilizeBtn.addEventListener('click', async () => {
-    try {
-        // Initialization
-        stabilizeBtn.disabled = true;
-        updateElementText('statusText', STATUS.TESTING);
-        optimizationDetail.innerText = "";
-        latencyAfter.innerText = "--";
+let isRunning = false;
 
-        // Step 1: Baseline Measurement
-        const baseline = await measureLatency();
-        latencyBefore.innerText = formatMs(baseline);
+btn.addEventListener('click', async () => {
+    isRunning = !isRunning;
 
-        // Step 2: Optimization Process
-        updateElementText('statusText', STATUS.STABILIZING);
-        const result = await optimizeConnection();
+    if (isRunning) {
+        // Start State
+        btn.innerText = "STOP STABILIZATION";
+        btn.classList.add('active-mode');
+        addLog("Initializing Active Guardian...");
         
-        // Step 3: Final Measurement
-        updateElementText('statusText', STATUS.COMPLETED);
-        const improved = await measureLatency();
-        latencyAfter.innerText = formatMs(improved);
-
-        // UI Feedback
-        optimizationDetail.innerText = `Optimized via ${result.provider}. Paths stabilized.`;
-        
-    } catch (error) {
-        console.error("Optimization failed:", error);
-        updateElementText('statusText', "Error Occurred");
-    } finally {
-        stabilizeBtn.disabled = false;
+        await toggleGuardian(true, (update) => {
+            if (update.type === 'STATUS') {
+                statusText.innerText = update.msg;
+            } else if (update.type === 'CYCLE') {
+                latencyDisplay.innerText = formatMs(update.latency);
+                healthDisplay.innerText = update.latency < 100 ? "Stable" : "Congested";
+                addLog(`Path warmed via ${update.provider} (${Math.round(update.latency)}ms)`);
+            }
+        });
+    } else {
+        // Stop State
+        btn.innerText = "START STABILIZATION";
+        btn.classList.remove('active-mode');
+        statusText.innerText = STATUS.IDLE;
+        addLog("Stabilization suspended.");
+        toggleGuardian(false);
     }
 });
+
+function addLog(msg) {
+    const entry = document.createElement('div');
+    entry.className = 'log-entry';
+    entry.innerText = `[${new Date().toLocaleTimeString()}] ${msg}`;
+    logWindow.prepend(entry);
+}
