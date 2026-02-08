@@ -1,23 +1,13 @@
-import { CONFIG } from '../utils/constants.js';
-
 export async function measureLatency() {
-    const target = 'https://www.google.com/generate_204';
     const start = performance.now();
+    const ctrl = new AbortController();
+    const tid = setTimeout(() => ctrl.abort(), 5000);
 
     try {
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), CONFIG.PING_TIMEOUT);
-
-        await fetch(target, { 
-            mode: 'no-cors', 
-            cache: 'no-cache',
-            signal: controller.signal 
+        await fetch('https://www.google.com/generate_204', { 
+            mode: 'no-cors', cache: 'no-cache', signal: ctrl.signal 
         });
-        
-        clearTimeout(timeoutId);
+        clearTimeout(tid);
         return performance.now() - start;
-    } catch (e) {
-        console.error("Latency check timed out");
-        return 999; 
-    }
+    } catch (e) { return 999; }
 }

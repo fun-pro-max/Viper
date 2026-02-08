@@ -10,28 +10,22 @@ let isRunning = false;
 
 btn.addEventListener('click', async () => {
     isRunning = !isRunning;
-
     if (isRunning) {
         btn.innerText = "STOP PROTECTION";
         btn.classList.add('active-mode');
-        
-        // Clear log on start
-        logWindow.innerHTML = ""; 
-        addLog("Activating Floating Guard...");
-        
-        await toggleGuardian(true, (update) => {
-            if (update.type === 'STATUS') {
-                statusText.innerText = update.msg;
-            } else if (update.type === 'CYCLE') {
-                latencyDisplay.innerText = formatMs(update.latency);
-                addLog(`Path warmed via ${update.provider}: ${Math.round(update.latency)}ms`);
+        logWindow.innerHTML = "";
+        addLog("Activating Guardian...");
+        await toggleGuardian(true, (u) => {
+            if (u.type === 'STATUS') statusText.innerText = u.msg;
+            else if (u.type === 'CYCLE') {
+                latencyDisplay.innerText = formatMs(u.latency);
+                addLog(`Path: ${u.provider} | ${Math.round(u.latency)}ms`);
             }
         });
     } else {
         btn.innerText = "START STABILIZATION";
         btn.classList.remove('active-mode');
-        statusText.innerText = "System Idle";
-        addLog("Protection deactivated.");
+        statusText.innerText = "Idle";
         toggleGuardian(false);
     }
 });

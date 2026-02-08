@@ -4,24 +4,25 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="theme-color" content="#0a0a0a">
-    <title>VIPER | Active Guard</title>
+    <title>VIPER | Connection Guard</title>
+    <link rel="apple-touch-icon" href="icon.jpg">
     <link rel="stylesheet" href="style.css">
     <link rel="manifest" href="manifest.json">
 </head>
 <body>
     <div class="app-container">
+        <!-- Technical elements for Floating Mode (Hidden but visible to browser) -->
+        <canvas id="pipCanvas" width="200" height="200" style="position:fixed; opacity:0; pointer-events:none; left:-999px;"></canvas>
+        <video id="pipVideo" autoplay muted playsinline style="position:fixed; width:1px; height:1px; opacity:0; pointer-events:none;"></video>
+
         <header>
             <h1>VIPER</h1>
             <p class="subtitle">Connection Stabilization Tool</p>
         </header>
 
-        <!-- Hidden elements for the Floating Orb -->
-        <canvas id="pipCanvas" width="200" height="200" style="display:none"></canvas>
-        <video id="pipVideo" autoplay muted playsinline style="display:none"></video>
-
         <main>
             <section class="description">
-                <p>Maintain active handshakes and routing priority. Use the floating mode to keep protection active in the background.</p>
+                <p>Optimizing routing paths. On Android, a floating window will appear to keep stabilization active in the background.</p>
             </section>
 
             <section class="action-zone">
@@ -33,26 +34,15 @@
                     <span class="label">Guard State:</span>
                     <span id="statusText" class="value">Idle</span>
                 </div>
-                
                 <div class="metrics">
                     <div class="metric-box">
-                        <span class="label">Current Latency</span>
+                        <span class="label">Latency</span>
                         <span id="latencyDisplay" class="value">--</span>
                     </div>
                 </div>
-
-                <div class="log-container">
-                    <div class="label">Live Activity Log</div>
-                    <div id="activityLog" class="log-window">
-                        <div class="log-entry">Waiting for user...</div>
-                    </div>
-                </div>
+                <div id="activityLog" class="log-window"></div>
             </section>
         </main>
-
-        <footer class="disclaimer">
-            *Floating Orb mode keeps the stabilization process alive while using other apps.
-        </footer>
     </div>
 
     <script type="module" src="app.js"></script>
