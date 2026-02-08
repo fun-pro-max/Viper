@@ -1,4 +1,4 @@
-const CACHE_NAME = 'viper-v6';
+const CACHE_NAME = 'viper-v7';
 const ASSETS = [
     './', './index.html', './style.css', './app.js', './icon.jpg', './manifest.json',
     './services/guardian.js', './services/networkTest.js', './services/optimizer.js',
