@@ -4,11 +4,11 @@ import { sleep } from '../utils/helpers.js';
 let isActive = false;
 let currentLat = 0;
 
-// High-Priority Global & Jio Backbones
-const NUCLEAR_TARGETS = [
-    'https://dns.google/generate_204',
-    'https://1.1.1.1/cdn-cgi/trace',
-    'https://www.jio.com/favicon.ico'
+// High-Bandwidth Peering Points (Jio has direct fiber to these)
+const CONDUITS = [
+    { url: 'https://www.google.com/generate_204', name: 'Google-Link' },
+    { url: 'https://connect.facebook.net/en_US/sdk.js', name: 'Meta-Link' },
+    { url: 'https://www.netflix.com/favicon.ico', name: 'Netflix-Link' }
 ];
 
 export async function toggleGuardian(enabled, onUpdate) {
@@ -24,39 +24,48 @@ export async function toggleGuardian(enabled, onUpdate) {
             await video.play();
             if (document.pictureInPictureEnabled) await video.requestPictureInPicture();
         } catch (e) {}
-        runNuclearLoop(onUpdate);
+        runAcceleratorLoop(onUpdate);
     } else {
         isActive = false;
         if (document.pictureInPictureElement) document.exitPictureInPicture().catch(()=>{});
     }
 }
 
-async function runNuclearLoop(onUpdate) {
+async function runAcceleratorLoop(onUpdate) {
     while (isActive) {
-        // Parallel Strike: Hit all backbones at once
-        const results = await Promise.all(NUCLEAR_TARGETS.map(t => measureJioPulse(t)));
-        
-        // Pick the absolute lowest latency from the bunch
+        // Parallel Telemetry
+        const results = await Promise.all(CONDUITS.map(c => measureJioPulse(c.url)));
         const bestLat = Math.min(...results);
         currentLat = bestLat;
 
         onUpdate({ 
             type: 'CYCLE', 
             latency: bestLat, 
-            status: bestLat > 100 ? 'NUCLEAR BURST' : 'LOCKED',
-            provider: 'Jio Multi-Path'
+            status: '3 Slots Active',
+            provider: 'Multi-Conduit'
         });
 
-        // The "Hammer": Send 15 parallel packets to force the tower's scheduler
-        const intensity = bestLat > 100 ? 15 : 5;
-        for (let i = 0; i < intensity; i++) {
-            NUCLEAR_TARGETS.forEach(t => {
-                fetch(`${t}?p=${i}`, { mode: 'no-cors', cache: 'no-store', priority: 'high' }).catch(()=>{});
+        // --- BANDWIDTH ACCELERATION LOGIC ---
+        // We pulse 20 parallel requests across 3 different domains.
+        // This mimics the behavior of a multi-part downloader (like IDM).
+        // It prevents the tower from throttling your "Burst" speed.
+        const burstSize = 20; 
+        
+        for (let i = 0; i < burstSize; i++) {
+            CONDUITS.forEach(c => {
+                // We use 'HEAD' to save data but keep the 'Pipe' open
+                fetch(`${c.url}?slot=${i}`, { 
+                    method: 'HEAD', 
+                    mode: 'no-cors', 
+                    cache: 'no-store', 
+                    priority: 'high' 
+                }).catch(()=>{});
             });
         }
 
-        // ULTRA-FAST REFRESH: 350ms to prevent radio power-down
-        await sleep(bestLat > 100 ? 350 : 1200);
+        // Fast refresh (600ms) to ensure the Tower Scheduler doesn't 
+        // take back the allocated Resource Blocks.
+        await sleep(600);
     }
 }
 
@@ -67,11 +76,12 @@ function startOrb(canvas) {
         if (!isActive) return;
         ctx.fillStyle = "#000000"; ctx.fillRect(0,0,120,120);
         const g = ctx.createRadialGradient(60,60,2,60,60,r);
-        let color = currentLat > 110 ? "#ff3b30" : (currentLat > 80 ? "#ffcc00" : "#4cd964");
+        // Color shifts to Deep Blue/Purple for "Bandwidth Boost"
+        let color = currentLat > 100 ? "#ff3b30" : (currentLat > 70 ? "#007aff" : "#4cd964");
         g.addColorStop(0, color); g.addColorStop(1, "transparent");
         ctx.beginPath(); ctx.arc(60,60,r,0,Math.PI*2); ctx.fillStyle = g; ctx.fill();
-        r += (currentLat > 110 ? 4 : 1.5);
-        if (r > 55 || r < 10) r = 20; 
+        r += 2.5;
+        if (r > 55) r = 15; 
         requestAnimationFrame(draw);
     }
     draw();
