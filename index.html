@@ -4,31 +4,24 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="theme-color" content="#0a0a0a">
-    <title>VIPER | Redline v11.1</title>
-    
-    <!-- PWA Requirements -->
+    <title>VIPER v13 | Nuclear</title>
     <link rel="manifest" href="manifest.json">
-    <link rel="apple-touch-icon" href="icon.jpg">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div class="app-container">
-        <!-- Compact Floating Orb (120px) -->
         <canvas id="pipCanvas" width="120" height="120" style="position:fixed; opacity:0; pointer-events:none; left:-999px;"></canvas>
         <video id="pipVideo" autoplay muted playsinline style="position:fixed; width:1px; height:1px; opacity:0; pointer-events:none;"></video>
 
         <header>
             <h1>VIPER</h1>
-            <p class="subtitle">Jio Dedicated Redline</p>
+            <p class="subtitle">Nuclear Jio Guard</p>
         </header>
 
         <main>
             <section class="action-zone">
-                <div class="jio-badge">TARGET: BBSR-JIO-CORE [MTU 1480]</div>
-                <button id="stabilizeBtn" class="primary-btn">ENGAGE REDLINE</button>
+                <div class="jio-badge">INTENSITY: MAXIMUM (350ms)</div>
+                <button id="stabilizeBtn" class="primary-btn">ENGAGE NUCLEAR STRIKE</button>
             </section>
 
             <section class="status-panel">
@@ -38,7 +31,7 @@
                         <span id="latencyDisplay" class="value">--</span>
                     </div>
                     <div class="metric-box">
-                        <span class="label">System State</span>
+                        <span class="label">Tower State</span>
                         <span id="statusText" class="value">Standby</span>
                     </div>
                 </div>
@@ -47,6 +40,6 @@
         </main>
     </div>
     <script type="module" src="app.js"></script>
-    <script>if ('serviceWorker' in navigator) { navigator.serviceWorker.register('./sw.js?v=11.1'); }</script>
+    <script>if ('serviceWorker' in navigator) { navigator.serviceWorker.register('./sw.js?v=13'); }</script>
 </body>
 </html>

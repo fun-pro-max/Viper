@@ -18,7 +18,7 @@ header h1 {
 .jio-badge { background: var(--jio-blue); color: #fff; padding: 10px; border-radius: 12px; margin-bottom: 15px; font-size: 0.65rem; font-weight: bold; border: 1px solid #1a56c0; }
 
 .primary-btn { background-color: var(--accent-blue); color: white; border: none; padding: 22px; border-radius: 20px; font-weight: 900; width: 100%; cursor: pointer; transition: 0.3s; font-size: 1.1rem; }
-.primary-btn.active-mode { background-color: var(--redline); box-shadow: 0 0 40px rgba(255, 59, 48, 0.4); }
+.primary-btn.active-mode { background-color: var(--redline); }
 
 .status-panel { background: var(--card-bg); border: 1px solid var(--border); border-radius: 24px; margin-top: 25px; padding: 20px; text-align: left; }
 .metrics { display: flex; gap: 12px; margin-bottom: 15px; }
@@ -26,5 +26,5 @@ header h1 {
 .label { font-size: 0.6rem; color: #555; text-transform: uppercase; display: block; }
 .value { font-size: 1.1rem; font-weight: 800; color: var(--green); margin-top: 5px; }
 
-.log-window { height: 200px; background: #000; border-radius: 15px; padding: 12px; font-family: monospace; font-size: 0.7rem; overflow-y: auto; color: #4cd964; }
+.log-window { height: 160px; background: #000; border-radius: 15px; padding: 12px; font-family: monospace; font-size: 0.7rem; overflow-y: auto; color: #4cd964; }
 .log-entry { margin-bottom: 4px; border-left: 2px solid #222; padding-left: 8px; }
