@@ -10,30 +10,49 @@ let isRunning = false;
 btn.addEventListener('click', async () => {
     isRunning = !isRunning;
     if (isRunning) {
-        btn.innerText = "STOP GUARD";
+        btn.innerText = "TERMINATE GUARD";
         btn.classList.add('active-mode');
-        logWindow.innerHTML = "";
-        addLog("v12 Socket-Lock Engaged...");
+        addLog("Initializing Neural-Link...");
         
-        await toggleGuardian(true, (u) => {
-            latencyDisplay.innerText = u.latency >= 900 ? "Filtering..." : `${Math.round(u.latency)}ms`;
-            statusText.innerText = u.status;
-            statusText.style.color = u.latency > 120 ? "#ff3b30" : "#4cd964";
-            if (u.latency < 900) addLog(`Pulse: ${Math.round(u.latency)}ms`);
+        await toggleGuardian(true, (data) => {
+            // Smooth Latency Update
+            animateValue(latencyDisplay, parseInt(latencyDisplay.innerText) || 0, Math.round(data.latency), "ms");
+            
+            statusText.innerText = data.status;
+            statusText.style.color = data.jitter > 20 ? "#ffcc00" : "#4cd964";
+            
+            if (data.jitter > 30) {
+                addLog(`Jitter Spike: ${Math.round(data.jitter)}ms - Boosting...`);
+            }
         });
     } else {
-        btn.innerText = "ENGAGE SOCKET-LOCK";
+        btn.innerText = "ENGAGE ACCELERATOR";
         btn.classList.remove('active-mode');
         statusText.innerText = "Standby";
-        addLog("Guard Standby.");
+        statusText.style.color = "white";
+        addLog("Accelerator Disengaged.");
         toggleGuardian(false);
     }
 });
 
+function animateValue(obj, start, end, suffix) {
+    if (isNaN(start)) start = 0;
+    const range = end - start;
+    let current = start;
+    const increment = end > start ? 1 : -1;
+    const stepTime = Math.abs(Math.floor(200 / range)) || 10;
+    
+    const timer = setInterval(() => {
+        current += increment;
+        obj.innerText = current + suffix;
+        if (current == end) clearInterval(timer);
+    }, stepTime);
+}
+
 function addLog(msg) {
     const entry = document.createElement('div');
     entry.className = 'log-entry';
-    entry.innerText = `[${new Date().toLocaleTimeString([], {hour12:false})}] ${msg}`;
+    entry.innerHTML = `<span style="color:#555">></span> ${msg}`;
     logWindow.prepend(entry);
-    if(logWindow.childNodes.length > 20) logWindow.lastChild.remove();
+    if(logWindow.childNodes.length > 15) logWindow.lastChild.remove();
 }

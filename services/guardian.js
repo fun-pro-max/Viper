@@ -3,12 +3,13 @@ import { sleep } from '../utils/helpers.js';
 
 let isActive = false;
 let currentLat = 0;
+let lastLat = 0;
+let jitter = 0;
 
-// High-Bandwidth Peering Points (Jio has direct fiber to these)
 const CONDUITS = [
-    { url: 'https://www.google.com/generate_204', name: 'Google-Link' },
-    { url: 'https://connect.facebook.net/en_US/sdk.js', name: 'Meta-Link' },
-    { url: 'https://www.netflix.com/favicon.ico', name: 'Netflix-Link' }
+    { url: 'https://www.google.com/generate_204', name: 'Google-Edge' },
+    { url: 'https://1.1.1.1/generate_204', name: 'Cloudflare-Edge' },
+    { url: 'https://www.facebook.com/favicon.ico', name: 'Meta-Edge' }
 ];
 
 export async function toggleGuardian(enabled, onUpdate) {
@@ -33,39 +34,40 @@ export async function toggleGuardian(enabled, onUpdate) {
 
 async function runAcceleratorLoop(onUpdate) {
     while (isActive) {
-        // Parallel Telemetry
+        const start = performance.now();
         const results = await Promise.all(CONDUITS.map(c => measureJioPulse(c.url)));
         const bestLat = Math.min(...results);
+        
+        // Calculate Jitter (Stability Factor)
+        jitter = Math.abs(bestLat - lastLat);
+        lastLat = bestLat;
         currentLat = bestLat;
 
+        // Visual Data Update
         onUpdate({ 
-            type: 'CYCLE', 
             latency: bestLat, 
-            status: '3 Slots Active',
-            provider: 'Multi-Conduit'
+            jitter: jitter,
+            status: jitter > 20 ? 'Stabilizing...' : 'Link Optimized',
+            pressure: jitter > 20 ? 'High' : 'Normal'
         });
 
-        // --- BANDWIDTH ACCELERATION LOGIC ---
-        // We pulse 20 parallel requests across 3 different domains.
-        // This mimics the behavior of a multi-part downloader (like IDM).
-        // It prevents the tower from throttling your "Burst" speed.
-        const burstSize = 20; 
+        // ADAPTIVE BURST: Increase pressure if jitter is high
+        // This forces the tower to keep the "Resource Blocks" allocated to your device
+        const intensity = jitter > 20 ? 35 : 15; 
         
-        for (let i = 0; i < burstSize; i++) {
-            CONDUITS.forEach(c => {
-                // We use 'HEAD' to save data but keep the 'Pipe' open
-                fetch(`${c.url}?slot=${i}`, { 
-                    method: 'HEAD', 
-                    mode: 'no-cors', 
-                    cache: 'no-store', 
-                    priority: 'high' 
-                }).catch(()=>{});
-            });
+        for (let i = 0; i < intensity; i++) {
+            // Using a rotating conduit selection to prevent IP flagging
+            const target = CONDUITS[i % CONDUITS.length].url;
+            fetch(`${target}?v14_burst=${i}_${Date.now()}`, { 
+                method: 'HEAD', 
+                mode: 'no-cors', 
+                priority: 'high' 
+            }).catch(()=>{});
         }
 
-        // Fast refresh (600ms) to ensure the Tower Scheduler doesn't 
-        // take back the allocated Resource Blocks.
-        await sleep(600);
+        // Dynamic Interval: Faster pulses during instability
+        const nextTick = jitter > 20 ? 400 : 800;
+        await sleep(nextTick);
     }
 }
 
@@ -74,14 +76,24 @@ function startOrb(canvas) {
     let r = 20;
     function draw() {
         if (!isActive) return;
-        ctx.fillStyle = "#000000"; ctx.fillRect(0,0,120,120);
-        const g = ctx.createRadialGradient(60,60,2,60,60,r);
-        // Color shifts to Deep Blue/Purple for "Bandwidth Boost"
-        let color = currentLat > 100 ? "#ff3b30" : (currentLat > 70 ? "#007aff" : "#4cd964");
-        g.addColorStop(0, color); g.addColorStop(1, "transparent");
-        ctx.beginPath(); ctx.arc(60,60,r,0,Math.PI*2); ctx.fillStyle = g; ctx.fill();
-        r += 2.5;
-        if (r > 55) r = 15; 
+        ctx.clearRect(0, 0, 120, 120);
+        
+        // Pulsing glow based on Jitter
+        const glowSize = 30 + (jitter / 2);
+        const color = currentLat > 120 ? "#ff3b30" : (jitter > 20 ? "#ffcc00" : "#4cd964");
+        
+        ctx.shadowBlur = glowSize;
+        ctx.shadowColor = color;
+        
+        const g = ctx.createRadialGradient(60,60,5,60,60,50);
+        g.addColorStop(0, color);
+        g.addColorStop(1, "transparent");
+        
+        ctx.fillStyle = g;
+        ctx.beginPath();
+        ctx.arc(60, 60, 25, 0, Math.PI * 2);
+        ctx.fill();
+        
         requestAnimationFrame(draw);
     }
     draw();
