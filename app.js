@@ -10,25 +10,24 @@ let isRunning = false;
 btn.addEventListener('click', async () => {
     isRunning = !isRunning;
     if (isRunning) {
-        btn.innerText = "TERMINATE GUARD";
+        btn.innerText = "TERMINATE SA-CORE";
         btn.classList.add('active-mode');
         logWindow.innerHTML = "";
-        addLog("V15 Neural-Lock Engaged...");
+        addLog("N78 Frequency Lock Initializing...");
         
         await toggleGuardian(true, (u) => {
-            // Visible Difference: Smoothing the latency display
-            const displayVal = Math.round(u.latency);
-            latencyDisplay.innerText = displayVal >= 900 ? "Filtering..." : `${displayVal}ms`;
+            const lat = Math.floor(u.latency);
+            latencyDisplay.innerText = lat >= 900 ? "Re-Routing..." : `${lat}ms`;
             statusText.innerText = u.status;
-            statusText.style.color = u.latency > 120 ? "#ff3b30" : "#4cd964";
-            if (u.latency < 900) addLog(`Pulse: ${displayVal}ms [Locked]`);
+            statusText.style.color = lat > 60 ? "#ff3b30" : "#00ff41";
+            
+            if (lat < 900 && lat % 2 === 0) addLog(`SA-Cell Optimized: ${lat}ms`);
         });
     } else {
-        btn.innerText = "ENGAGE ACCELERATOR";
+        btn.innerText = "INITIALIZE CORE";
         btn.classList.remove('active-mode');
-        statusText.innerText = "Standby";
-        statusText.style.color = "white";
-        addLog("Guard Standby.");
+        statusText.innerText = "STANDBY";
+        addLog("Radio Standby.");
         toggleGuardian(false);
     }
 });
@@ -36,7 +35,7 @@ btn.addEventListener('click', async () => {
 function addLog(msg) {
     const entry = document.createElement('div');
     entry.className = 'log-entry';
-    entry.innerText = `[${new Date().toLocaleTimeString([], {hour12:false})}] ${msg}`;
+    entry.innerText = `>> ${msg}`;
     logWindow.prepend(entry);
-    if(logWindow.childNodes.length > 20) logWindow.lastChild.remove();
+    if(logWindow.childNodes.length > 15) logWindow.lastChild.remove();
 }

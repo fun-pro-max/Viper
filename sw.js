@@ -1,4 +1,4 @@
-const CACHE_NAME = 'viper-v15';
+const CACHE_NAME = 'viper-v16-sa';
 const ASSETS = ['./', './index.html', './style.css', './app.js', './manifest.json', './services/guardian.js', './services/networkTest.js', './utils/helpers.js'];
 
 self.addEventListener('install', e => {
