@@ -4,7 +4,6 @@ import { sleep } from '../utils/helpers.js';
 let isActive = false;
 let currentLat = 0;
 
-// High-Bandwidth Peering Points (Jio has direct fiber to these)
 const CONDUITS = [
     { url: 'https://www.google.com/generate_204', name: 'Google-Link' },
     { url: 'https://connect.facebook.net/en_US/sdk.js', name: 'Meta-Link' },
@@ -33,39 +32,34 @@ export async function toggleGuardian(enabled, onUpdate) {
 
 async function runAcceleratorLoop(onUpdate) {
     while (isActive) {
-        // Parallel Telemetry
         const results = await Promise.all(CONDUITS.map(c => measureJioPulse(c.url)));
         const bestLat = Math.min(...results);
         currentLat = bestLat;
 
         onUpdate({ 
-            type: 'CYCLE', 
             latency: bestLat, 
-            status: '3 Slots Active',
-            provider: 'Multi-Conduit'
+            status: bestLat < 110 ? 'Ultra Priority' : 'Socket Saturation'
         });
 
-        // --- BANDWIDTH ACCELERATION LOGIC ---
-        // We pulse 20 parallel requests across 3 different domains.
-        // This mimics the behavior of a multi-part downloader (like IDM).
-        // It prevents the tower from throttling your "Burst" speed.
-        const burstSize = 20; 
-        
+        // V15 PEAK OPTIMIZATION: Staggered Multi-threading
+        // We push 25 parallel slots but stagger them by 4ms to prevent browser thread locking
+        const burstSize = 25; 
         for (let i = 0; i < burstSize; i++) {
-            CONDUITS.forEach(c => {
-                // We use 'HEAD' to save data but keep the 'Pipe' open
-                fetch(`${c.url}?slot=${i}`, { 
-                    method: 'HEAD', 
-                    mode: 'no-cors', 
-                    cache: 'no-store', 
-                    priority: 'high' 
-                }).catch(()=>{});
-            });
+            setTimeout(() => {
+                if (!isActive) return;
+                CONDUITS.forEach(c => {
+                    fetch(`${c.url}?v15_pulse=${i}_${Date.now()}`, { 
+                        method: 'HEAD', 
+                        mode: 'no-cors', 
+                        cache: 'no-store', 
+                        priority: 'high' 
+                    }).catch(()=>{});
+                });
+            }, i * 4);
         }
 
-        // Fast refresh (600ms) to ensure the Tower Scheduler doesn't 
-        // take back the allocated Resource Blocks.
-        await sleep(600);
+        // Fast re-check interval
+        await sleep(650);
     }
 }
 
@@ -75,12 +69,16 @@ function startOrb(canvas) {
     function draw() {
         if (!isActive) return;
         ctx.fillStyle = "#000000"; ctx.fillRect(0,0,120,120);
+        
+        // Orbital Pulse speed changes based on Latency (Visible Difference)
+        const speed = currentLat > 100 ? 1.5 : 3.0;
+        
         const g = ctx.createRadialGradient(60,60,2,60,60,r);
-        // Color shifts to Deep Blue/Purple for "Bandwidth Boost"
-        let color = currentLat > 100 ? "#ff3b30" : (currentLat > 70 ? "#007aff" : "#4cd964");
+        let color = currentLat > 120 ? "#ff3b30" : (currentLat > 70 ? "#007aff" : "#4cd964");
         g.addColorStop(0, color); g.addColorStop(1, "transparent");
         ctx.beginPath(); ctx.arc(60,60,r,0,Math.PI*2); ctx.fillStyle = g; ctx.fill();
-        r += 2.5;
+        
+        r += speed;
         if (r > 55) r = 15; 
         requestAnimationFrame(draw);
     }

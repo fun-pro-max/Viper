@@ -10,21 +10,24 @@ let isRunning = false;
 btn.addEventListener('click', async () => {
     isRunning = !isRunning;
     if (isRunning) {
-        btn.innerText = "STOP GUARD";
+        btn.innerText = "TERMINATE GUARD";
         btn.classList.add('active-mode');
         logWindow.innerHTML = "";
-        addLog("v12 Socket-Lock Engaged...");
+        addLog("V15 Neural-Lock Engaged...");
         
         await toggleGuardian(true, (u) => {
-            latencyDisplay.innerText = u.latency >= 900 ? "Filtering..." : `${Math.round(u.latency)}ms`;
+            // Visible Difference: Smoothing the latency display
+            const displayVal = Math.round(u.latency);
+            latencyDisplay.innerText = displayVal >= 900 ? "Filtering..." : `${displayVal}ms`;
             statusText.innerText = u.status;
             statusText.style.color = u.latency > 120 ? "#ff3b30" : "#4cd964";
-            if (u.latency < 900) addLog(`Pulse: ${Math.round(u.latency)}ms`);
+            if (u.latency < 900) addLog(`Pulse: ${displayVal}ms [Locked]`);
         });
     } else {
-        btn.innerText = "ENGAGE SOCKET-LOCK";
+        btn.innerText = "ENGAGE ACCELERATOR";
         btn.classList.remove('active-mode');
         statusText.innerText = "Standby";
+        statusText.style.color = "white";
         addLog("Guard Standby.");
         toggleGuardian(false);
     }
